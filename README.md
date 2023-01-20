@@ -1,6 +1,6 @@
 # Description
 
-This repository contains data and code associated with:
+This repository contains data and code associated with the following manuscript (currently under review):
 
 Economou, M., Vanden Bempt, F., Van Herck, S., Wouters J.,  Ghesquière, P., Vanderauwera, J. and Vandermosten, M. Myelin plasticity during early literacy training in at-risk pre-readers.
 
