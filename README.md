@@ -12,7 +12,6 @@ Content:
 - The script 04_tables_figures.R loads raw data and model output and provides the necessary commands to reproduce the tables and figures of the manuscript.
 
 Notes:
-- The flowchart (Figure 1) was not generated in R and is not included in this repository.
 - Every script should be standalone, such that if one wants to only generate the figures, they could directly run script #04, which will then execute every necessary previous step to generate the figures and tables.
 
 
