@@ -1,35 +1,35 @@
 # Load packages -----------------------------------------------------------
 
-library(here)
-library(tidyverse)
-library(ggplot2)
-library(data.table)
-library(ggeffects)
-library(gtsummary)
-library(performance)
-library(lme4)
-library(lmerTest)
-library(emmeans)
-library(ggpubr)
-library(papaja)
-library(effects)
-library(RColorBrewer)
-library(lm.beta)
-library(flextable)
+require(here)
+require(tidyverse)
+require(ggplot2)
+require(data.table)
+require(ggeffects)
+require(gtsummary)
+# library(performance)
+require(lme4)
+require(lmerTest)
+require(emmeans)
+require(ggpubr)
+require(papaja)
+require(effects)
+require(RColorBrewer)
+require(lm.beta)
+require(flextable)
 
 # Helper functions --------------------------------------------------------
 
 is.nan.data.frame <- function(x)
   do.call(cbind, lapply(x, is.nan))
 
-lm2pred <- function(m){
-  dat <- do.call(rbind, (lapply(m, ggeffects::ggemmeans(terms=c("MWF_percent_change")))))
-  dat <- do.call(rbind, dat)
-  dat<-as.data.frame(dat)
-  dat <- dat %>%
-    # filter(!group %in% c("age_years")) %>%
-    mutate_if(is.character,~factor(.))
-}
+# lm2pred <- function(m){
+#   dat <- do.call(rbind, (lapply(m, ggeffects::ggemmeans(terms=c("MWF_percent_change")))))
+#   dat <- do.call(rbind, dat)
+#   dat<-as.data.frame(dat)
+#   dat <- dat %>%
+#     # filter(!group %in% c("age_years")) %>%
+#     mutate_if(is.character,~factor(.))
+# }
 
 # Load data ---------------------------------------------------------------
 
@@ -40,7 +40,7 @@ data_wide <-fread(here::here("data","tidy","data_wide.csv"))
 age_long <-fread(here::here("data","tidy","age_long.csv"))
 
 data_pre <- data_rois_voxels %>%
-  # filter(!mean_RMSt > 2.2) %>%  # try with motion exclusion
+  # filter(!mean_RMSt > 2.2) %>%  # try with full motion exclusion criterion (see Supplement)
   filter(time %in% "ses-01") %>%
   mutate_at("risk", ~as.factor(.)) %>%
   mutate_at("tract", ~as.factor(.)) %>%

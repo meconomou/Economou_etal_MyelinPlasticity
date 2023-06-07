@@ -52,9 +52,8 @@ mytheme <- theme_bw() +
 jitter <- position_jitter(width=0.05, seed=123)
 dodge <- position_dodge(width = 0.4)
 
-
-
 # Table 1 -----------------------------------------------------------------
+# code to reproduce the participants table
 
 analyzed_ids <- data_rois_voxels %>%
   group_by(id, time, intervention) %>%
@@ -147,6 +146,7 @@ table_participants_flex <- flextable::flextable(table_participants_tbl) %>%
 
 # Table 2 -----------------------------------------------------------------
 
+# code to reproduce table 2: number of analyzed datasets per group, timepoint and tract.
 n_datasets_table <- data_rois_voxels %>%
   group_by(intervention, time, tract) %>%
   summarize(n=length(unique(id))) %>%
@@ -171,6 +171,7 @@ n_datasets_table <- data_rois_voxels %>%
 
 
 # Table 3 -----------------------------------------------------------------
+# code to reproduce Table 3: MWF baseline values and effect sizes for risk-related comparisons
 
 # add raw MWF values to eff size table
 pre_rawvals <- data_pre %>%
@@ -220,6 +221,7 @@ pre_effsizes_table <- pre_effsizes_hedges %>%
 
 
 # Table 4 -----------------------------------------------------------------
+# code to reproduce Tabe 4: effect sizes for within-group changes in MWF across sessions
 
 prepost_effsizes_table <- prepost_es %>%
   select(tract, ni_gg, hedges_Gav_gg, CLES_gg,
@@ -254,137 +256,85 @@ prepost_effsizes_table <- prepost_es %>%
 
 # Figure 1 ----------------------------------------------------------------
 
-lmer_int_lh_emms <- as.data.frame(ggemmeans(lmer_int_s_lh, terms=c("time","intervention"))) %>%
+# Gathering data for figure
+rlmer_int_lh_emms <- as.data.frame(ggemmeans(rlmer_int_s_lh, terms=c("time","intervention"))) %>%
   rename(intervention=group) %>%
   rename(time=x) %>%
   rename(MWF=predicted)
 
-lmer_int_lh_emms_all <- as.data.frame(ggemmeans(lmer_int_s_lh, terms=c("time","intervention","tract"))) %>%
+rlmer_int_lh_emms_all <- as.data.frame(ggemmeans(rlmer_int_s_lh, terms=c("time","intervention","tract"))) %>%
   rename(intervention=group) %>%
   rename(time=x) %>%
   rename(MWF=predicted) %>%
   rename(tract=facet) %>%
   mutate(tract = factor(tract, levels=c("Left_Arcuate","Left_SLF", "Left_IFOF","Left_ILF")))
 
-plot_intervention_lh <- lmer_int_lh_emms %>%
+# Code for plotting
+plot_indivchange_lh <- data_rois_lh %>%
   mutate(intervention=factor(intervention, levels=c("GG_NE","ActiveControl","CONTROL"))) %>%
-  ggplot(aes(x=time, y=MWF, colour=intervention)) +
-  geom_pointrange(aes(ymin=conf.low, ymax=conf.high), size=0.5) +
-  geom_line(size=1, aes(group=intervention)) +
-  geom_point(data=lmer_int_lh_emms_all, alpha=.4) +
-  # geom_point(data=data_rois_lh, alpha=.2, position=jitter) +
-  geom_line(data=lmer_int_lh_emms_all, aes(group=tract, linetype=tract), alpha=.8) +
-  scale_color_brewer(palette="Dark2") +
-  # scale_x_discrete(labels=c("L AF","L IFOF", "L ILF", "L SLF")) +
-  facet_wrap(~intervention, labeller=labeller(intervention=group.labs)) +
-  scale_y_continuous(limits=c(0.04, 0.07)) +
-  scale_linetype_manual(name="Tract",
-                        labels=c("L AFdirect","L AFanterior", "L IFOF","L ILF"),
-                        values=c("solid", "longdash","dotted","dotdash")) +
-  labs(x="Session", y="Myelin water fraction") +
+  ggplot(aes(x=time, y=MWF)) +
+  geom_point(aes(group=id, colour=intervention), alpha=.08) +
+  geom_line(aes(group=id, colour=intervention), alpha=.2) +
+  geom_line(inherit.aes=F, data=rlmer_int_lh_emms_all,
+            aes(x=time, y=MWF, colour=intervention, group=intervention), size=1) +
+  geom_errorbar(inherit.aes=F, data=rlmer_int_lh_emms_all,
+                aes(x=time, y=MWF, ymin=conf.low, ymax=conf.high, colour=intervention, group=intervention),
+                size=0.6, width=0.2) +
+  facet_grid(intervention~tract, labeller=labeller(intervention=group.labs, tract=tract.labs)) +
+  labs(x="Session", y="MWF") +
   scale_x_discrete(labels=c("pre","post")) +
-  groupcolor +
   mytheme +
-  theme(legend.position="right",
-        # axis.text.x=element_text(size=11),
-        # strip.text.x=element_text(size=12),
-        # plot.margin=unit(c(1.5,0.1,0,0.05),"cm"),
-        axis.title.x = element_text(vjust=-0.5))
+  groupcolor +
+  theme(legend.position="none")
 
-tiff(here("figs","Figure1.tiff"), units="mm", width=180, height=100, res=300)
-plot_intervention_lh
+# Write figure to file. Dimensions defined to fit the manuscript/journal guidelines.
+
+tiff(here("figs","Figure1.tiff"),
+     units="mm", width=100, height=170, res=300)
+plot_indivchange_lh
 dev.off()
 
-# Figure 2 ----------------------------------------------------------------
+ggsave(here("figs","Figure1.png"), plot=plot_indivchange_lh,
+       units="mm", width=100, height=170, dpi=300)
 
-lmer_int_rh_emms <- as.data.frame(ggemmeans(lmer_int_s_rh, terms=c("time","intervention"))) %>%
+
+# Figure 2 ----------------------------------------------------------------
+# Gathering data for figure
+rlmer_int_rh_emms <- as.data.frame(ggemmeans(rlmer_int_s_rh, terms=c("time","intervention"))) %>%
   rename(intervention=group) %>%
   rename(time=x) %>%
   rename(MWF=predicted)
 
-lmer_int_rh_emms_all <- as.data.frame(ggemmeans(lmer_int_s_rh, terms=c("time","intervention","tract"))) %>%
+rlmer_int_rh_emms_all <- as.data.frame(ggemmeans(rlmer_int_s_rh, terms=c("time","intervention","tract"))) %>%
   rename(intervention=group) %>%
   rename(time=x) %>%
   rename(MWF=predicted) %>%
   rename(tract=facet)
 
-plot_intervention_rh <- lmer_int_rh_emms_all %>%
-  mutate(intervention=factor(intervention, levels=c("GG_NE","ActiveControl","CONTROL"))) %>%
-  mutate(tract=factor(tract, levels=c("Right_Arcuate","Right_SLF","Right_IFOF","Right_ILF"))) %>%
-  ggplot(aes(x=time, y=MWF, colour=intervention)) +
-  geom_pointrange(aes(ymin=conf.low, ymax=conf.high), position=dodge) +
-  geom_line(size=1, aes(group=intervention), position=dodge) +
-  facet_wrap(~tract, labeller=labeller(tract=tract.labs, intervention=group.labs), ncol=4, nrow=1) +
-  scale_color_brewer(palette="Dark2") +
-  scale_y_continuous(limits=c(0.03, 0.08)) +
-  # scale_linetype_manual(name="Tract",
-  #                       labels=c("R AFdirect","R AFanterior", "R IFOF","R ILF"),
-  #                       values=c("solid", "longdash","dotted","dotdash")) +
-  labs(x="Session", y="Myelin water fraction") +
-  scale_x_discrete(labels=c("pre","post")) +
-  groupcolor +
-  mytheme +
-  theme(legend.position="bottom",
-        # axis.text.x=element_text(size=11),
-        # strip.text.x=element_text(size=12),
-        # plot.margin=unit(c(1.5,0.1,0,0.05),"cm"),
-        axis.title.x = element_text(vjust=-0.5))
-
-tiff(here("figs","Figure2.tiff"), units="mm", width=200, height=100, res=300)
-plot_intervention_rh
-dev.off()
-
-# Supplementary Figure 1 --------------------------------------------------
-
-plot_indivchange_lh_bw <- data_rois_lh %>%
+# Code for plotting
+plot_indivchange_rh <- data_rois_rh %>%
   mutate(intervention=factor(intervention, levels=c("GG_NE","ActiveControl","CONTROL"))) %>%
   ggplot(aes(x=time, y=MWF)) +
-  geom_point(aes(group=id), alpha=.08, colour="black") +
-  geom_line(aes(group=id), alpha=.2, colour="black") +
-  geom_line(inherit.aes=F, data=lmer_int_lh_emms_all,
-            aes(x=time, y=MWF, group=intervention), colour="black", size=1) +
-  geom_errorbar(inherit.aes=F, data=lmer_int_lh_emms_all,
-                aes(x=time, y=MWF, ymin=conf.low, ymax=conf.high, group=intervention),
-                size=0.6, width=0.2, colour="black") +
-  facet_grid(intervention~tract, labeller=labeller(intervention=group.labs, tract=tract.labs)) +
-  labs(x="Session", y="MWF") +
-  scale_x_discrete(labels=c("pre","post")) +
-  mytheme +
-  # greygroupcolor +
-  theme(legend.position="none")
-
-tiff(here("figs","SupplFigure1.tiff"),
-     units="mm", width=100, height=170, res=300)
-plot_indivchange_lh_bw
-dev.off()
-
-ggsave(here("figs","SupplFigure1.png"), plot=plot_indivchange_lh_bw,
-       units="mm", width=100, height=170, dpi=300)
-
-# Supplementary Figure 2 --------------------------------------------------
-
-plot_indivchange_rh_bw <- data_rois_rh %>%
-  mutate(intervention=factor(intervention, levels=c("GG_NE","ActiveControl","CONTROL"))) %>%
-  ggplot(aes(x=time, y=MWF)) +
-  geom_point(aes(group=id), alpha=.08, colour="black") +
-  geom_line(aes(group=id), alpha=.2, colour="black") +
-  geom_line(inherit.aes=F, data=lmer_int_rh_emms_all,
-            aes(x=time, y=MWF, group=intervention), size=1, colour="black") +
-  geom_errorbar(inherit.aes=F, data=lmer_int_rh_emms_all,
-                aes(x=time, y=MWF, ymin=conf.low, ymax=conf.high, group=intervention),
-                size=0.6, width=0.2, colour="black") +
+  geom_point(aes(group=id, colour=intervention), alpha=.08) +
+  geom_line(aes(group=id, colour=intervention), alpha=.2) +
+  geom_line(inherit.aes=F, data=rlmer_int_rh_emms_all,
+            aes(x=time, y=MWF, colour=intervention, group=intervention), size=1) +
+  geom_errorbar(inherit.aes=F, data=rlmer_int_rh_emms_all,
+                aes(x=time, y=MWF, ymin=conf.low, ymax=conf.high, colour=intervention, group=intervention),
+                size=0.6, width=0.2) +
   facet_grid(intervention~tract, labeller=labeller(intervention=group.labs, tract=tract.labs)) +
   scale_y_continuous(limits=c(0.02, 0.12)) +
   labs(x="Session", y="MWF") +
   scale_x_discrete(labels=c("pre","post")) +
-  groupcolor + mytheme +
+  groupcolor +
+  mytheme +
   theme(legend.position="none")
 
-tiff(here("figs","SupplFigure2.tiff"),
+# Write figure to file. Dimensions defined to fit the manuscript/journal guidelines.
+tiff(here("figs","Figure2.tiff"),
      units="mm", width=100, height=170, res=300)
-plot_indivchange_rh_bw
+plot_indivchange_rh
 dev.off()
 
-ggsave(here("figs","SupplFigure2.png"), plot=plot_indivchange_rh_bw,
+ggsave(here("figs","Figure2.png"), plot=plot_indivchange_rh,
        units="mm", width=100, height=170, dpi=300)
-
