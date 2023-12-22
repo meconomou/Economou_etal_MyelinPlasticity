@@ -4,7 +4,7 @@ This repository contains data and code associated with the following manuscript 
 
 Economou, M., Vanden Bempt, F., Van Herck, S., Wouters J.,  Ghesquière, P., Vanderauwera, J. and Vandermosten, M. Myelin plasticity during early literacy training in at-risk pre-readers.
 
-DOI will be shared as soon as it becomes available.
+The manuscript can be found here: https://doi.org/10.1016/j.cortex.2023.05.023
 
 Content:
 
